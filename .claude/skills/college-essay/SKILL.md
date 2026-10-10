@@ -1,6 +1,6 @@
 ---
 name: college-essay
-description: Coach a student through college application essays — Common App personal statement, UC Personal Insight Questions, and school-specific supplements ("Why us?", community, activity, short answers). Use when the user wants to brainstorm topics, outline, draft, revise, cut to a word limit, or get feedback on a college/admissions essay or personal statement. Keeps the student's own voice and real experiences; never invents stories.
+description: Coach a student through college application writing — Common App personal statement, UC Personal Insight Questions, school supplements ("Why us?", community, short answers), the Common App activities list, Additional Information, scholarship essays, waitlist/deferral letters, and transfer essays. Use when the user wants to brainstorm topics, research a school, outline, draft, revise, cut to a word or character limit, check for AI-sounding writing, or get feedback on any college/admissions essay or application writing. Keeps the student's own voice and real experiences; never invents stories.
 ---
 
 # College Essay Coach
@@ -27,6 +27,22 @@ remember concrete moments and genuine insight, not polished vocabulary.
 4. **Respect limits.** Always know the word limit and report the count
    (`python3 scripts/essay_check.py <file>` or count manually). Common App = 650
    max; UC PIQs = 350 each; supplements vary — ask.
+
+## Student profile (start every session here)
+
+Keep the student's material in `essays/profile.md` in the working directory.
+- **At the start of a session:** if it exists, read it so you know their stories,
+  activities, schools, voice, and which essays are done. If it doesn't, offer to
+  create it from `templates/profile.md` and fill it in as you go. Don't make them
+  answer every field up front.
+- **During the session:** add new stories to the story bank, update the school list
+  and essay tracker, and note which story each essay uses so stories don't repeat
+  across essays or duplicate the activities list.
+- **At the end:** add a one-line entry to the session log (what changed, next step).
+- Save drafts as `essays/<essay-name>.md`, school research as `essays/schools/<school>.md`,
+  and activities as `essays/activities.md`.
+- The profile holds personal information. If the project is a git repo, remind the
+  student once that it should be private, and only commit or push if they ask.
 
 ## Workflow
 
@@ -83,10 +99,16 @@ Never cut the most specific details first — they're the essay's value.
 
 ## Essay-type guidance
 
-Prompts, limits, and type-specific advice are in `references/prompts.md`
-(Common App, UC PIQs, "Why us?", community, activity, short answers). Prompts
-change occasionally — ask the student to confirm the current wording from the
-application portal.
+| Task | Reference |
+|---|---|
+| Common App and UC prompts, supplement types | `references/prompts.md` (last checked Oct 2026 for the 2026–27 cycle) |
+| "Why us?" / "Why this major?" research | `references/why-us-research.md`: verify every school fact from a current source; never invent courses or professors |
+| Activities list (150-character descriptions) and honors | `references/activities-list.md`, check with `scripts/activity_check.py` |
+| Additional Information, Challenges, scholarship, waitlist/deferral letters, transfer, short quirky prompts | `references/other-essays.md` |
+| Showing a revision move | `references/revision-examples.md`: before/after pairs to teach a technique, never to supply content |
+
+Prompts change occasionally. Ask the student to confirm the current wording in
+the application portal.
 
 ## Examples
 
@@ -97,6 +119,10 @@ image comes back at the end"). Never offer lines or story shapes for the student
 to copy, and flag drafts that start echoing an example.
 
 ## Tools
+
+`scripts/activity_check.py essays/activities.md` checks activity entries
+(`position:`, `org:`, `desc:`, `honor:` lines) against the Common App character
+limits and flags descriptions without numbers or with weak openings.
 
 `scripts/essay_check.py <file> [--limit N]` reports word/character count against
 a limit and flags common clichés, filler, and overused words. Treat its flags as

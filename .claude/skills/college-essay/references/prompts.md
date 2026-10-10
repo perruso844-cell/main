@@ -1,10 +1,11 @@
 # Prompts and Essay Types
 
-Prompts change occasionally. Always confirm the current wording and limit
-with the student (from the application portal or school website).
+Last checked October 2026 against published guides for the 2026–27 cycle
+(fall 2027 entry). Prompts change occasionally, so have the student confirm
+the current wording and limit in the application portal or on the school's site.
 
 ## Common App personal statement (250–650 words)
-Choose one:
+Unchanged for 2026–27 (the Common App announced this on Feb 27, 2026). Choose one:
 1. Some students have a background, identity, interest, or talent that is so meaningful they believe their application would be incomplete without it. If this sounds like you, then please share your story.
 2. The lessons we take from obstacles we encounter can be fundamental to later success. Recount a time when you faced a challenge, setback, or failure. How did it affect you, and what did you learn from the experience?
 3. Reflect on a time when you questioned or challenged a belief or idea. What prompted your thinking? What was the outcome?
@@ -18,11 +19,16 @@ Tips:
 - For #2, keep the obstacle to roughly a third of the essay; the response and growth are the point.
 - The goal is to reveal character, values, and thinking — not to list achievements.
 
-## Common App "Additional information"
-Not a second essay. Use for context: illness, family circumstances, school
-disruptions, unusual schedules. Factual, brief, no pity-seeking.
+## Common App "Additional information" (300 words max)
+Cut from 650 to 300 words starting in the 2025–26 cycle. Not a second essay.
+Use it for context: illness, family circumstances, school disruptions, unusual
+schedules or grading, a gap in activities. Factual, brief, no pity-seeking.
+Guides also describe a separate "Challenges and Circumstances" question (about
+250 words) that replaced the old COVID-19 question. Confirm its current form in
+the portal. See `other-essays.md` for both.
 
 ## UC Personal Insight Questions (choose 4 of 8, 350 words max each)
+Same eight prompts for 2026–27; the filing period is Oct 1 to Nov 30, 2026. All questions are weighted equally.
 Topics: leadership; creativity; greatest talent or skill; educational
 opportunity or barrier; significant challenge; academic subject that inspires
 you; making your school or community better; what makes you stand out
@@ -34,6 +40,7 @@ Tips:
 - Choose 4 that together show different sides of the student; avoid repeating the activities list.
 
 ## "Why us?" supplement
+Full research workflow in `why-us-research.md`.
 - Research is the whole game. Specific courses, professors, programs, traditions, clubs, research opportunities — and *why each matters to this student specifically*.
 - Swap test: if you could replace the school name with another and it still works, it's too generic.
 - Avoid: rankings, prestige, location/weather, campus beauty, "diverse community" without specifics.
