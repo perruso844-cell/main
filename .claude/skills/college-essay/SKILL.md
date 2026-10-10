@@ -88,8 +88,39 @@ Prompts, limits, and type-specific advice are in `references/prompts.md`
 change occasionally — ask the student to confirm the current wording from the
 application portal.
 
+## Examples
+
+`references/examples.md` has craft notes on admitted students' essays (Harvard
+personal statements, Harvard and Michigan supplements): what each one does well
+and where it falls short. Use it to show a technique ("notice how this opening
+image comes back at the end"). Never offer lines or story shapes for the student
+to copy, and flag drafts that start echoing an example.
+
 ## Tools
 
 `scripts/essay_check.py <file> [--limit N]` reports word/character count against
 a limit and flags common clichés, filler, and overused words. Treat its flags as
 prompts for judgment, not rules.
+
+`scripts/ai_check.py <file>` is a self-check modeled on school AI detectors
+(Turnitin, GPTZero). By default it scores style signals those tools respond to:
+even sentence lengths (low "burstiness"), AI-favored vocabulary, stock phrasing,
+tidy triplets, transition openers, uniform paragraphs, and missing concrete detail.
+It lists the sentences with the most markers. Optional extras:
+`--perplexity` adds a GPTZero-style perplexity score with a local GPT-2 model
+(`pip install torch transformers`; the text stays local), and `--gptzero` queries
+the real GPTZero API (`GPTZERO_API_KEY`; this sends the essay to a third party,
+so ask first). Turnitin has no public API for individuals.
+
+How to use the result:
+- It's a revision prompt, not a verdict. No detector can prove authorship, and all
+  of them produce false positives, especially on formal writing or writing by
+  non-native English speakers.
+- A high score on the student's own writing usually means the prose is generic.
+  Fix it with what makes the essay better anyway: specific details, their own
+  phrasing, varied sentences. Don't swap in synonyms or add random errors.
+- Never use it to disguise AI-written text as the student's own. If a draft was
+  largely generated, the fix is for the student to rewrite it from their own
+  material.
+- Tell students that the best protection against a false flag is a record of how
+  they wrote it: keep their drafts, notes, and Google Docs version history.
