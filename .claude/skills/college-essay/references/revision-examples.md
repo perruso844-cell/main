@@ -108,4 +108,4 @@ own material, using only details they supply.
 **After:**
 > I quit twice. The third time I came back, I brought snacks for the whole team, and somehow that's when it started to feel like mine.
 
-**The move:** Drop the vocabulary detectors flag (transformative, fostered, ignited, profound) and the "not only… but also" pattern. Use short, specific, slightly unexpected sentences in the student's own voice. Then check with `scripts/ai_check.py`.
+**The move:** Drop the vocabulary detectors flag (transformative, fostered, ignited, profound) and the "not only… but also" pattern. Use short, specific, slightly unexpected sentences in the student's own voice. Then run the `ai-check` skill on the revision.
