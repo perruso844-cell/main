@@ -503,3 +503,39 @@ If the user asks "what would tool X say?", these are the current characteristics
 - **Ghostbuster** is the canonical black-box (no token probs needed) detector — 99 F1 in-domain,
   degrades out-of-domain.
 - **DependencyAI** uses syntactic dependency n-grams + LightGBM, cross-lingual without LLM access.
+
+---
+
+## Comparing against real detectors (optional)
+
+`scripts/detectors.py` runs the text through several detectors and lines their scores up
+on one scale (AI likelihood, 0-100), with the median, mean, range, and whether they agree.
+
+```bash
+python3 scripts/detectors.py draft.txt --rubric 62                    # local only
+python3 scripts/detectors.py draft.txt --rubric 62 --services gptzero,sapling
+python3 scripts/detectors.py draft.txt --services all --perplexity    # every detector with a key
+```
+
+- **Local rows** run with no network: the `style` heuristic, `--perplexity` (GPT-2, needs
+  `pip install torch transformers`), and `--rubric N`, where N is this skill's own score
+  converted to 0-100 (OVERALL SCORE ÷ 27 × 100, rounded).
+- **Commercial rows** run only when named in `--services`, and each one sends the full
+  text to that company. **Ask the user before naming any service**, say which companies
+  the text will go to, and never pass `--services` on your own initiative. Keys come from
+  environment variables (`GPTZERO_API_KEY`, `ORIGINALITY_API_KEY`, `COPYLEAKS_EMAIL` +
+  `COPYLEAKS_API_KEY`, `SAPLING_API_KEY`, `WINSTON_API_KEY`, `PANGRAM_API_KEY`); a service
+  without a key is skipped. Never ask the user to paste a key into the chat.
+- Turnitin has no public API, and the free web checkers (ZeroGPT, QuillBot, Scribbr) have
+  no official one, so none of them can be included.
+- If a row says "unrecognized response", that vendor changed its API format. Report it and
+  leave it out rather than guessing a score.
+- Sandboxed environments (the claude.ai app, some cloud sessions) often block these sites.
+  The rows then show a connection error and the local rows still run.
+
+How to report it: lead with the median and the agreement line, not the mean. Show every
+row, including skipped ones, so the user sees which detectors were and weren't consulted.
+When the spread is wide, say so plainly: detectors that disagree by 50+ points are
+telling you the text is ambiguous, not that the average is the truth. Several detectors
+agreeing is not proof either. They share false positives on formal writing and on
+non-native English, so the calibration notes above still cap your confidence.

@@ -128,11 +128,14 @@ limits and flags descriptions without numbers or with weak openings.
 a limit and flags common clichés, filler, and overused words. Treat its flags as
 prompts for judgment, not rules.
 
-For AI-sounding writing, use the companion skills instead of a script:
+For AI-sounding writing, use the companion skills:
 
 - **`ai-check`** scores a draft for AI tells (rhythm, vocabulary, stock phrasing,
   rhetorical scaffolding, missing specifics) and cites the evidence for each flag.
   Run it when the student asks "does this sound AI?" or before final review.
+  To compare against real detectors (GPTZero, Originality.ai, Copyleaks, Sapling,
+  Winston, Pangram), use its `scripts/detectors.py`. Get the student's OK before
+  sending an essay to any of those companies.
 - **`humanize`** gives the rules for fixing those tells. In this skill, apply it
   only as a revision guide on the student's own draft: point to the flagged
   sentences and help the student rewrite them from their own material. Ground
