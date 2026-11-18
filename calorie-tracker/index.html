@@ -110,6 +110,32 @@ input, select { font: inherit; color: var(--ink); background: var(--bg); border:
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
 
+/* Snap */
+.snap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+@media (max-width: 560px) { .snap { grid-template-columns: minmax(0, 1fr); } }
+.snapbtn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--accent); color: #fff; border: 0; border-radius: 14px; padding: 16px 22px; font-family: var(--display); font-weight: 700; font-size: 18px; cursor: pointer; }
+.snapbtn:hover { filter: brightness(1.07); }
+.snapbtn:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+.snapbtn svg { width: 24px; height: 24px; }
+.snapbtn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.snapcopy p { margin: 0; color: var(--muted); font-size: 14px; max-width: 52ch; }
+.review { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 460px) { .review { grid-template-columns: minmax(0, 1fr); } }
+.review img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; max-width: 100%; }
+.ritems { display: grid; gap: 8px; min-width: 0; }
+.ritem { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.ritem .name { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.ritem .meta { font-size: 12px; color: var(--muted); font-weight: 400; }
+.ritem select { width: auto; padding: 5px 6px; font-size: 13px; }
+.ritem input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); }
+.rfoot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.rfoot .tot { font-family: var(--display); font-weight: 700; font-size: 20px; }
+.conf { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--track); color: var(--muted); }
+.ghost { border: 1px solid var(--line); background: none; border-radius: 10px; padding: 10px 14px; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; display: inline-block; vertical-align: -4px; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
 details summary { cursor: pointer; font-weight: 600; font-family: var(--display); font-size: 16px; }
 details[open] summary { margin-bottom: 12px; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
@@ -131,6 +157,20 @@ details[open] summary { margin-bottom: 12px; }
   </header>
 
   <div class="notice" id="status">Connecting to your log…</div>
+
+  <section class="panel" aria-label="Log a meal from a photo">
+    <div class="snap" id="snapStart">
+      <label class="snapbtn" id="snapLabel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Snap your meal
+        <input id="photo" type="file" accept="image/*" capture="environment">
+      </label>
+      <div class="snapcopy">
+        <p id="snapCopy">Take a photo of your plate. Claude names each food, estimates the portion and its calories, and you add it all with one tap.</p>
+      </div>
+    </div>
+    <div id="snapWork" hidden></div>
+  </section>
 
   <div class="board">
     <div class="col">
@@ -164,7 +204,12 @@ details[open] summary { margin-bottom: 12px; }
 
     <div class="col">
       <section class="panel" aria-label="Add food">
-        <h2>Add food</h2>
+        <div class="field">
+          <span class="eyebrow">Quick add</span>
+          <div class="suggest" id="recent"><span class="hint">Foods you log show up here. Tap one to log it again.</span></div>
+        </div>
+        <details id="manual">
+        <summary>Enter food manually</summary>
         <form id="addForm" autocomplete="off">
           <div class="field">
             <label for="fName">Food</label>
@@ -196,10 +241,7 @@ details[open] summary { margin-bottom: 12px; }
           <div class="err" id="formErr" role="alert"></div>
           <button class="primary" type="submit">Add to log</button>
         </form>
-        <div class="field">
-          <span class="eyebrow">Recent</span>
-          <div class="suggest" id="recent"><span class="hint">Foods you add show up here for one-tap logging.</span></div>
-        </div>
+        </details>
       </section>
 
       <section class="panel" aria-label="Last 7 days">
@@ -549,7 +591,136 @@ details[open] summary { margin-bottom: 12px; }
     try { await backend?.saveGoals(state.goals); toast("Goals saved"); } catch (e) { toast("Couldn't save goals. Try again."); }
   });
 
-  $("prevDay").onclick = () => { state.date = addDays(state.date, -1); render(); };
+  // ---------- Photo logging ----------
+  let sample = null, imgLimits = null, snapCtrl = null, snapResult = null, snapUrl = null;
+  const PORTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+  const work = $("snapWork");
+  (async () => {
+    try { sample = await window.claude?.use?.("sample"); } catch (e) {}
+    if (sample) imgLimits = (await sample.limits().catch(() => null))?.images || null;
+    if (!sample || !imgLimits) {
+      $("snapLabel").hidden = true;
+      $("snapCopy").textContent = "Photo logging needs Claude, which isn't available in this view. Open the page signed in to claude.ai, or use Quick add and manual entry below.";
+    }
+  })();
+
+  async function shrink(file) {
+    const max = 1280;
+    try {
+      const bmp = await createImageBitmap(file);
+      const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(bmp.width * s); cv.height = Math.round(bmp.height * s);
+      cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+      return await new Promise(r => cv.toBlob(b => r(b || file), "image/jpeg", 0.85));
+    } catch (e) { return file; }
+  }
+
+  const ERR = {
+    not_granted: "Photo logging is turned off for this page. You can allow it from the page's Permissions menu.",
+    rate_limited: "You've hit your Claude usage limit for now. Try again in a while, or enter the food manually.",
+    image_rejected: "That image couldn't be read. Try a JPEG or PNG photo.",
+    refused: "Claude couldn't analyse this photo. Try another shot of the food.",
+    invalid_json: "The estimate came back garbled. Tap Try again.",
+  };
+
+  function showWork(html) { work.innerHTML = html; work.hidden = false; $("snapStart").hidden = true; }
+  function resetSnap() {
+    snapCtrl?.abort(); snapCtrl = null; snapResult = null;
+    if (snapUrl) URL.revokeObjectURL(snapUrl); snapUrl = null;
+    work.hidden = true; work.innerHTML = ""; $("snapStart").hidden = false; $("photo").value = "";
+  }
+
+  async function analyse(file, hint) {
+    const blob = await shrink(file);
+    if (snapUrl) URL.revokeObjectURL(snapUrl);
+    snapUrl = URL.createObjectURL(blob);
+    showWork(`<div class="review"><img src="${snapUrl}" alt="Your meal photo"><div class="ritems"><p style="margin:0"><span class="spinner"></span>Identifying foods and estimating portions…</p><div><button class="ghost" type="button" id="snapCancel">Cancel</button></div></div></div>`);
+    $("snapCancel").onclick = resetSnap;
+    snapCtrl = new AbortController();
+    const prompt = `You are a nutrition analyst. The attached image is a photo of food someone is about to eat or just ate.
+Identify every distinct food and drink item visible. For each, estimate the portion actually shown using visual cues (plate size ~26 cm, utensils, hands, packaging) and give calories and macros for THAT portion, using standard nutrition references (e.g. USDA). Include visible oils, sauces, dressings and toppings, either as their own item or folded into the dish, and say which in the portion text.
+${hint ? `The person added this note: "${hint.slice(0, 300)}". Trust it over what you see.` : ""}
+If the image contains no food, return an empty items array and explain in "note".
+Respond with JSON only, in exactly this shape:
+{"items":[{"name":"short food name","portion":"e.g. about 1 cup (150 g)","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}],"confidence":"low|medium|high","note":"one short sentence on what most affects accuracy, e.g. hidden oil or unclear portion size"}`;
+    try {
+      const out = await sample.json(prompt, { images: [blob], modelTier: "default", signal: snapCtrl.signal, cache: false });
+      snapCtrl = null;
+      const items = (Array.isArray(out?.items) ? out.items : []).map(i => ({
+        name: String(i.name || "Food").slice(0, 80), portion: String(i.portion || "").slice(0, 80),
+        kcal: Math.max(0, +i.kcal || 0), p: Math.max(0, +i.protein_g || 0), c: Math.max(0, +i.carbs_g || 0), f: Math.max(0, +i.fat_g || 0),
+        on: true, qty: 1,
+      }));
+      snapResult = { items, confidence: ["low", "medium", "high"].includes(out?.confidence) ? out.confidence : "medium", note: String(out?.note || "").slice(0, 240), file };
+      renderReview();
+    } catch (e) {
+      snapCtrl = null;
+      if (e?.code === "cancelled") return;
+      showWork(`<div class="review"><img src="${snapUrl}" alt="Your meal photo"><div class="ritems"><p class="err" style="margin:0">${ERR[e?.code] || "Something went wrong while estimating. Try again, or enter the food manually."}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" type="button" id="snapRetry">Try again</button><button class="ghost" type="button" id="snapCancel">Cancel</button></div></div></div>`);
+      $("snapCancel").onclick = resetSnap;
+      $("snapRetry").onclick = () => analyse(file, hint);
+    }
+  }
+
+  function renderReview() {
+    const r = snapResult;
+    if (!r.items.length) {
+      showWork(`<div class="review"><img src="${snapUrl}" alt="Your meal photo"><div class="ritems"><p style="margin:0">No food found in this photo.${r.note ? " " + escapeHTML(r.note) : ""}</p><div><button class="primary" type="button" id="snapCancel">Take another</button></div></div></div>`);
+      $("snapCancel").onclick = resetSnap;
+      return;
+    }
+    const mealNow = $("fMeal").value;
+    const rows = r.items.map((it, i) => `
+      <div class="ritem">
+        <input type="checkbox" id="ri${i}" ${it.on ? "checked" : ""} aria-label="Include ${escapeHTML(it.name)}">
+        <label class="name" for="ri${i}">${escapeHTML(it.name)}<div class="meta">${escapeHTML(it.portion)} · P ${g1(it.p * it.qty)} · C ${g1(it.c * it.qty)} · F ${g1(it.f * it.qty)}</div></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="num">${fmt(it.kcal * it.qty)}</span>
+          <select id="rq${i}" aria-label="Portion size for ${escapeHTML(it.name)}">${PORTIONS.map(p => `<option value="${p}" ${p === it.qty ? "selected" : ""}>${p}×</option>`).join("")}</select>
+        </div>
+      </div>`).join("");
+    const tot = r.items.filter(i => i.on).reduce((s, i) => s + i.kcal * i.qty, 0);
+    showWork(`<div class="review"><img src="${snapUrl}" alt="Your meal photo">
+      <div class="ritems">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h2>Here's what I see</h2><span class="conf">${r.confidence} confidence</span></div>
+        ${rows}
+        ${r.note ? `<p class="hint" style="margin:0">${escapeHTML(r.note)}</p>` : ""}
+        <div class="field"><label for="snapHint">Something off? Tell Claude and re-check</label>
+          <div style="display:flex;gap:8px"><input id="snapHint" placeholder="e.g. it's a double portion, cooked in butter"><button class="ghost" type="button" id="snapRecheck">Re-check</button></div></div>
+        <div class="rfoot">
+          <span class="tot num">${fmt(tot)} kcal</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="sMeal" aria-label="Meal" style="width:auto">${MEALS.map(([k, l]) => `<option value="${k}" ${k === mealNow ? "selected" : ""}>${l}</option>`).join("")}</select>
+            <button class="primary" type="button" id="snapAdd" ${tot || r.items.some(i => i.on) ? "" : "disabled"}>Add to log</button>
+            <button class="ghost" type="button" id="snapCancel">Discard</button>
+          </div>
+        </div>
+      </div></div>`);
+    r.items.forEach((it, i) => {
+      $("ri" + i).onchange = (e) => { it.on = e.target.checked; renderReview(); };
+      $("rq" + i).onchange = (e) => { it.qty = +e.target.value; renderReview(); };
+    });
+    $("snapCancel").onclick = resetSnap;
+    $("snapRecheck").onclick = () => { const h = $("snapHint").value.trim(); if (h) analyse(r.file, h); };
+    $("snapAdd").onclick = () => {
+      const meal = $("sMeal").value;
+      const picked = r.items.filter(i => i.on);
+      if (!picked.length) return;
+      const now = Date.now();
+      const add = picked.map(i => ({ id: uid(), t: now, name: i.name, kcal: Math.round(i.kcal), p: i.p, c: i.c, f: i.f, qty: i.qty, meal, src: "photo" }));
+      writeDay(state.date, [...(state.days.get(state.date) || []), ...add], `Added ${fmt(picked.reduce((s, i) => s + i.kcal * i.qty, 0))} kcal`);
+      resetSnap();
+    };
+  }
+  const escapeHTML = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  $("photo").addEventListener("change", (e) => {
+    const f = e.target.files?.[0];
+    if (f && sample) analyse(f, "");
+  });
+
+  $("prevDay").onclick =() => { state.date = addDays(state.date, -1); render(); };
   $("nextDay").onclick = () => { if (state.date < keyOf(new Date())) { state.date = addDays(state.date, 1); render(); } };
   $("todayBtn").onclick = () => { state.date = keyOf(new Date()); render(); };
 
